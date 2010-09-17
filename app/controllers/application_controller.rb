@@ -1,8 +1,3 @@
-# Author::      Eli Fox-Epstein, efoxepstein@wesleyan.edu
-# Author::      Dimitar Gochev, dimitar.gochev@trincoll.edu
-# Copyright::   Humanitarian FOSS Project (http://www.hfoss.org), Copyright (C) 2009.
-# License::     http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License (LGPL)
-
 class ApplicationController < ActionController::Base
   require 'digest/sha1'
   helper :all # include all helpers, all the time
@@ -27,7 +22,7 @@ class ApplicationController < ActionController::Base
   
   
   after_filter :set_admin_flash
-  before_filter :set_current_account
+  before_filter :set_current_account, :set_environment
   before_filter :check_account_redirect
   
   helper_method :promo?, :subdomain
@@ -35,6 +30,10 @@ class ApplicationController < ActionController::Base
   def set_current_account
     @instance = subdomain == '' ? nil : Instance.find_by_short_name(subdomain)
     raise Instance::Missing, subdomain if @instance.blank? && !subdomain_forbidden?
+  end
+
+  def set_environment
+    @in_production = ENV['RAILS_ENV'] == 'production'
   end
   
   def subdomain_forbidden?
@@ -68,7 +67,7 @@ class ApplicationController < ActionController::Base
   end
   
   def set_admin_flash
-    if !promo? && logged_in? && @current_user.permission_to?(:update, User) && User.exists?(:state => 'pending') && flash[:notice].blank?
+    if !promo? && logged_in? && @current_user.permission_to?(:update, User) && @instance.users.exists?(:state => 'pending') && flash[:notice].blank?
       flash[:notice] = t('notice.user.pending_users', :url => users_path(:states_filter => 'pending'))
     end
   end

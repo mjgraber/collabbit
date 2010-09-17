@@ -1,9 +1,3 @@
-# Listens for user creation and then handles email authentication
-#
-# Author::      Eli Fox-Epstein, efoxepstein@wesleyan.edu
-# Author::      Dimitar Gochev, dimitar.gochev@trincoll.edu
-# Copyright::   Humanitarian FOSS Project (http://www.hfoss.org), Copyright (C) 2009.
-# License::     http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License (LGPL)
 class UpdateObserver < ActiveRecord::Observer
     
   @@enabled = true
@@ -33,11 +27,17 @@ class UpdateObserver < ActiveRecord::Observer
       end
             
       alerts.each_pair do |user, feed|
-        if user.active? && !user.cell_phone.blank? && !user.carrier.blank? && feed.text_alert?
+        alerted = false
+        if user.active? && user.text_alert && feed.text_alert && 
+          !user.cell_phone.blank? && !user.carrier.blank? &&
           UserMailer.deliver_text_alert(user, feed, update, action)
+          alerted = true
         end
-        UserMailer.deliver_email_alert(user, feed, update, action) if feed.email_alert? && user.active?
-        user.last_alerted = Time.now
+        if user.active? && user.email_alert? && feed.email_alert?
+          UserMailer.deliver_email_alert(user, feed, update, action)
+          alerted = true
+        end
+        user.last_alerted = Time.now if alerted
         user.save
       end
       

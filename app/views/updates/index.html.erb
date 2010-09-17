@@ -1,13 +1,4 @@
-<%
-# View which displays the list of updates in an incident.  
-#
-# Author::      Eli Fox-Epstein, efoxepstein@wesleyan.edu
-# Author::      Dimitar Gochev, dimitar.gochev@trincoll.edu
-# Copyright::   Humanitarian FOSS Project (http://www.hfoss.org), Copyright (C) 2009.
-# License::     http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License (LGPL)
-%>
-
-<% content_for :title, title('Updates', @incident.name, 'Incidents', @instance.short_name)%>
+<% content_for :title, title('Updates', @incident.name, 'Incidents') %>
 <% content_for :javascripts, javascript_include_tag('jquery', 'jquery.multifile', 'updates', 'prototype')%>
 
 <% content_for :breadcrumbs, 
@@ -16,9 +7,17 @@
 	<%=link_to @incident.name, @incident %>
 	<span class="title-small">
 	<% if !@search && !@groups_filter && !@tags_filter %>
-		showing all <%=@updates.size %> updates
+		<% if @all_updates.size == @updates.size %>
+			showing <%= @updates.size == 1 ? '':'all' %> <%= pluralize(@updates.size, "update") %>
+		<% else %>
+			showing <%= @updates.size %> of <%= @all_updates.size %> total updates
+		<% end %>
 	<% else %>
-		showing <%=@updates.size%> filtered updates
+		<% if @all_updates.size == @updates.size %>
+			showing <%= pluralize(@updates.size, "filtered update") %>
+		<% else %>
+			showing <%= @updates.size %> of <%= @all_updates.size %> filtered updates
+		<% end %>
 	<% end %>
 	</span>
 <% end %>
@@ -26,12 +25,11 @@
 	<% if can? :create => Update %>
 		<%= pretty_button(:add_update, new_incident_update_path(@incident), '+ Add Update')%>
 	<% end %>
-	<% if can? :destroy => @incident %>
-		<%= pretty_delete_button(@incident, :check => true) %>
-	<% end %>
-	<% if can? :update => @incident %>
-		<%= pretty_button(:edit_incident, edit_incident_path(@incident), 'Edit Incident') %>
-		<%= pretty_button(:close_incident, incident_close_path(@incident), @incident.closed_at ? 'Reopen Incident' : 'Close Incident') %>
+	<% if can?(:destroy => @incident) || can?(:update => @incident) %>
+		<div id="admin_buttons" class="button-link">
+			Manage
+			<%= incident_admin_buttons(@incident) %>
+		</div>
 	<% end %>
 <% end %>
 <% content_for :subheader_text, subheader_text(@incident.description) if @incident.description %>
@@ -42,17 +40,17 @@
 			groups.merge u.relevant_groups
 			groups.add u.issuing_group unless u.issuing_type == :user || !u.issuing_group
 			tags.merge u.tags
-		end
-		
+		end	
 		tags = (tags.map {|t| [t.name, t.id]}).sort {|a,b| a[0]<=>b[0]}
-		groups = (groups.map {|g| [g.name, g.id]}).sort {|a,b| a[0]<=>b[0]}
 	%>
 		
 	<% form_tag incident_updates_path(@incident), :method => :get do %>
 		<%= text_field_tag :search, (params[:search] || 'Search Keywords'), :size => 20, :class=>(!params[:search] || params[:search] == '' ? 'blank':'') %>
 					
 		<select name="groups_filter" id="filters_groups">
-			<%= options_for_select([['All Groups', nil],['My Groups', 'mine']]+groups, @groups_filter) %>
+			<option value="" <%= 'selected="selected"' if @groups_filter == "" %>>All Groups</option>
+			<option value="mine" <%= 'selected="selected"' if @groups_filter == "mine" %> <%= 'style="display: none"' if @current_user.groups.size == 0 %>>My Groups</option>
+			<%= group_select_options(groups,@groups_filter) %>
 		</select>
 		<select name="tags_filter" id="filters_tags">
 			<%= options_for_select([['All Tags', nil]] + tags, @tags_filter) %>
@@ -64,26 +62,38 @@
 		<% @current_user.feeds.find_by_incident_id(@incident.id).tap do |feed| %>
 	    	<% unless feed.blank? %>		
         		You are receiving
-        		<% if feed.email_alert && feed.text_alert %>
+				<% if feed.email_alert? && @current_user.email_alert? &&
+					  feed.text_alert?  && @current_user.text_alert? %>
         			<strong>text</strong> and <strong>email</strong>
-        		<% elsif feed.email_alert %>
+        		<% elsif feed.email_alert? && @current_user.email_alert? %>
         			<strong>email</strong>
-        		<% elsif feed.text_alert %>
+        		<% elsif feed.text_alert?  && @current_user.text_alert? %>
         			<strong>text</strong>
         		<% else %>
         			no
         		<% end %>
         		alerts for this incident.
         		<a id="alert-settings" href="#">Alert Settings<span class="arrow">&#9660;</span></a>
+				&middot; <%= link_to 'Incident Export', formatted_incident_path(@incident, :text) %>
         		<% form_for(@current_user, :html => {:id => 'alerts-form', :class => 'hidden'}) do |f| %>
         			<%= hidden_field_tag 'return_to', :back %>
         			<% f.fields_for :feeds, @current_user.feeds.find_by_incident_id(@incident.id) do |feed_form| %>
-        				Receive text message alerts? <%= feed_form.check_box :text_alert %>
-        				Email alerts? <%= feed_form.check_box :email_alert %>
+						Receive text message alerts?
+						<% if @current_user.text_alert? %>
+							<%= feed_form.check_box :text_alert %>
+						<% else %>
+							<%= feed_form.check_box :text_alert, {:disabled => 'disabled'} %>
+						<% end %>
+						Email alerts?
+						<% if @current_user.email_alert? %>
+							<%= feed_form.check_box :email_alert %>
+						<% else %>
+							<%= feed_form.check_box :email_alert, {:disabled => 'disabled'} %>
+						<% end %>
         				<div><%= submit_tag 'Update' %></div>
         			<% end %>
         		<% end %>
-        		&middot; <%= link_to 'Incident Export', formatted_incident_path(@incident, :text) %>
+
     		<% end %>
 		<% end %>
 	</div>
@@ -100,7 +110,9 @@
 	
 	<% url = incident_update_poll_for_newer_url(@incident, @latest_update_id, :user_id => @current_user.id)%>
 	<%= periodically_call_remote :url => url, :frequency => '10' %>
-	<div id="new-updates">
+	<div id="new-updates-outer">
+		<div id="new-updates-inner">
+		</div>
 	</div>
 		
 	<% if @updates.blank? %>
@@ -118,15 +130,18 @@
 		<li>
 			<div class="update-meta">
 				<div class="update-author"><%= issuer_link(u)%></div>
-				<div class="update-time">posted <%=time_ago_in_words u.created_at %> ago</div>
-				<div class="update-edited"><%= u.updated_at > u.created_at ? "edited #{time_ago_in_words u.updated_at} ago" : '' %></div>
+				<div class="update-time">posted <%=time_mdy_smart u.created_at %></div>
+				<div class="update-edited"><%= u.updated_at > u.created_at ? "edited #{time_mdy_smart u.updated_at}" : '' %></div>
 			</div>
 			<div class="update-extra">
 				<% unless u.relevant_groups.empty? %>
 					<div class="relevant-groups">
 						<h5>Groups:</h5>
 						<ul>
+						<% j = 0 %>
+						<% i = u.relevant_groups.find(:all).count %>
 						<% u.relevant_groups.find(:all, :order => 'name').each do |g| %>
+							<% j= j + 1 %>
 							<li><%=link_to g.name, group_type_group_path(g.group_type, g) %></li>		
 						<% end %>	
 						</ul>
@@ -137,8 +152,11 @@
 					<div class="tags">
 						<h5>Tags:</h5>
 						<ul>
+						<% j = 0 %>
+						<% i = u.tags.find(:all).count %>
 						<% u.tags.find(:all, :order => 'name').each do |t| %>
-							<li><%=link_to t.name, t %></li>
+							<% j= j + 1 %>
+							<li><%= tag_link_helper t, u.incident %></li>	
 						<% end %>
 						</ul>
 						<div class="clear"></div>
@@ -151,7 +169,7 @@
 				<%= link_to u.title, incident_update_path(@incident, u), :class => 'update-title' %>
 				<div class="update-text">
 				<%  if u.text.length > 256 %>
-					<%=truncate_at(simple_link_format(u.text).split('</p>')[0],256) %>
+					<%= abbreviated_text(u) %>
 					<%=link_to('&raquo;more', incident_update_path(@incident, u),:class => 'update-more') %>
 				<%  else %>
 					<%=simple_link_format u.text %>
@@ -179,15 +197,13 @@
 					<div class="comment">
 						<span class="comment-author"><%=link_to c.user.full_name, c.user %></span>
 						<span class="comment-body"><%=simple_link_format c.body%></span>
-						<% if can? :destroy => c %>
-						    <span class="comment-destroy">
-						        [<%=link_to 'X', [@incident, u, c], :method => :delete, :confirm => 'Really delete?' %>]
-						    </span>
+						<% if (c.user.id == @current_user.id) || (can? :destroy => c) %>
+						    <span class="comment-destroy"><%=link_to '[x]', [@incident, u, c], :method => :delete, :confirm => 'Really delete?' %></span>
 						<% end %>
-						<span class="comment-date">posted <%=time_ago_in_words c.created_at%> ago</span>
+						<span class="comment-date">posted <%=time_mdy c.created_at%></span>
 					</div>
 					<% end %>
-					<% form_for [u.incident, u, Comment.new], :id => "#{u.id}-new-comment" do |f| %>
+					<% form_for [u.incident, u, Comment.new], :html => {:id => "#{u.id}-new-comment", :class => "new-comment"} do |f| %>
 						<%= f.text_field :body, :class => "comment-textfield blank" %>
 						<div class="comment-submit-wrapper">
 						    <%= f.submit 'Add Comment', :class => "comment-submit hide" %>

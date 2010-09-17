@@ -1,14 +1,4 @@
-<%
-# View which displays a list of all the incidents under an instance,
-# specified by @instance.  
-#
-# Author::      Eli Fox-Epstein, efoxepstein@wesleyan.edu
-# Author::      Dimitar Gochev, dimitar.gochev@trincoll.edu
-# Copyright::   Humanitarian FOSS Project (http://www.hfoss.org), Copyright (C) 2009.
-# License::     http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License (LGPL)
-%>
-
-<% content_for :title, title('Incidents', @instance.short_name)%>
+<% content_for :title, title('Incidents')%>
 
 <% content_for :subheader_title, 'Incidents' %>
 <% content_for :buttons do %>
@@ -22,19 +12,19 @@
         <h3 class="centered">There are no incidents yet.
         Want to <%= link_to 'create one', new_incident_path %>?
     <% else %>
-        <ul id="incidents-list" class="listy">
+        <ul id="incidents-list">
         <% @incidents.each do |i| %>
             <% unless i.closed_at? %>
             <li><%= link_to i.name, i, :class => :title %> 
-                &mdash; <%=h i.description %>
-                <span class="tiny">(<%=mdy i.created_at%>)</span>
+                <%=h i.description %>
+                <span class="date">(<%=mdy i.created_at%>)</span>
             </li>
             <% else %>
             <li>
                 <span class="changed">closed</span>
                 <%= link_to i.name, i, :class => "title closed" %>
-                &mdash; <%=h i.description %>
-                <span class="tiny">(<%=mdy i.created_at%> to <%=mdy i.closed_at%>)</span>
+                <%=h i.description %>
+                <span class="date">(<%=mdy i.created_at%> to <%=mdy i.closed_at%>)</span>
             </li>
             <% end %>
         <% end %>

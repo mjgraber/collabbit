@@ -1,10 +1,3 @@
-# Controller for operations on users in the database.
-#
-# Author::      Eli Fox-Epstein, efoxepstein@wesleyan.edu
-# Author::      Dimitar Gochev, dimitar.gochev@trincoll.edu
-# Copyright::   Humanitarian FOSS Project (http://www.hfoss.org), Copyright (C) 2009.
-# License::     http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License (LGPL)
-
 class UsersController < AuthorizedController
 
   skip_before_filter :require_login, :only => [:new, :create, :forgot_password,
@@ -18,37 +11,44 @@ class UsersController < AuthorizedController
       :page => params[:page],
       :per_page => 100,
       :include => :groups,
-      :order => 'last_name ASC'
+      :order => 'LOWER(last_name) ASC'
     }
     
-    search_options = {}
+    search_clauses = {}
     
     unless params[:groups_filter].blank?
-      search_options[:groups_id_is] = @groups_filter = params[:groups_filter]
+      @groups_filter = params[:groups_filter]
+      unless @groups_filter == '' || @groups_filter == 'mine' || @groups_filter == nil
+        @groups_filter = @groups_filter.to_i
+      end
+      search_clauses[:groups_id_equals_any] = case @groups_filter
+        when 'mine' then @current_user.group_ids
+        else [@groups_filter]
+      end
     end
     
     if params[:states_filter].blank? || !@current_user.can?(:update => @instance.users)
-      search_options[:state_equals] = 'active'
+      search_clauses[:state_equals] = 'active'
       @states_filter = 'active' if @current_user.can?(:update => @instance.users)
     else
-      search_options[:state_equals] = @states_filter = params[:states_filter]
+      search_clauses[:state_equals] = @states_filter = params[:states_filter]
     end
     
     unless params[:search].blank?
       @search = params[:search]    
       if params[:search] =~ /\A([a-zA-Z\-]+), ([a-zA-Z\-]+)\z/
-        search_options[:first_name_starts_with] = $2
-        search_options[:last_name_starts_with] = $1
+        search_clauses[:first_name_starts_with] = $2
+        search_clauses[:last_name_starts_with] = $1
       elsif params[:search] =~ /\A([a-zA-Z\-]+) ([a-zA-Z\-]+)\z/
-        search_options[:first_name_starts_with] = $1
-        search_options[:last_name_starts_with] = $2
+        search_clauses[:first_name_starts_with] = $1
+        search_clauses[:last_name_starts_with] = $2
       else
         key = %w( first_name last_name cell_phone desk_phone email ).map {|e|"#{e}_like"}.join('_or_')
-        search_options[key.to_sym] = @search
+        search_clauses[key.to_sym] = @search
       end
     end
     
-    @users = @instance.users.search(search_options).paginate(pagination_options)
+    @users = @instance.users.search(search_clauses).uniq.sort_by {|u| [u.last_name.downcase,u.first_name.downcase]}.paginate(pagination_options)
   end
 
   def show
@@ -85,7 +85,7 @@ class UsersController < AuthorizedController
   # the :user hash, which is populated by the form on the 'new' page
   def create
     return with_rejection unless !logged_in? || @current_user.can?(:create => User)
-    
+    params[:user][:email].strip!
     @user = create_user(params[:user])
     @user.state = 'approved' if logged_in? || @user.whitelisted?
 
@@ -151,6 +151,11 @@ class UsersController < AuthorizedController
     @user = @instance.users.find(params[:id])
     return with_rejection unless @current_user.can? :update => @user
 
+    # prevent people from modifying the demo user account
+    if @instance.short_name == 'demo' && @current_user.email == 'demo@collabbit.org' && @user == @current_user
+      return with_rejection(:error => "The demo user account cannot be changed.")
+    end
+
     if @current_user.permission_to?(:update, @user)
       unless params[:user][:state].blank?
         flash[:notice] = t('notice.user.created', :name => @user.first_name) if @user.state == 'pending'  
@@ -165,10 +170,35 @@ class UsersController < AuthorizedController
     
     if @user.update_attributes(params[:user])
       flash[:notice] ||= t('notice.user.updated')
-      redirect_to (params[:return_to] == 'back' ? :back : params[:return_to]) || @user
+      redirect_to (params[:return_to] == 'back' ? :back : params[:return_to]) || edit_user_url(@user)
     else
-      render :action => 'new'
+      render :action => 'edit'
     end
+  end
+
+  # for a user changing their password
+  def change_password
+    user = User.find(params[:user_id])
+
+    # prevent people from modifying the demo user account
+    if @instance.short_name == 'demo' && @current_user.email == 'demo@collabbit.org'
+      return with_rejection(:error => "The demo user account cannot be changed.")
+    end
+
+    if user and user.password_matches?(params[:password])
+      if params[:new_password].blank? && params[:new_password_confirmation].blank?
+        flash[:notice] = t('error.user.blank_password')
+      elsif params[:new_password] == params[:new_password_confirmation]
+        user.generate_crypted_password!(params[:new_password])
+        user.save
+        flash[:notice] = t('notice.user.password_changed')
+      else
+        flash[:error] = t('error.user.password_mismatch')
+      end
+    else
+      flash[:error] = t('error.user.invalid_password')
+    end
+    redirect_to :back
   end
 
   # Activates an existing user, identified by the :activation_code provided
@@ -206,6 +236,13 @@ class UsersController < AuthorizedController
       flash[:error] = t('error.user.unauthorized_editing')
       redirect_to new_session_path
     end
+  end
+
+  # re-sends a confirmation email to a user
+  def resend_activation
+    @user = @instance.users.find(params[:user_id])
+    UserMailer.deliver_approved_notification(@user)
+    redirect_to :back
   end
 
   # Removes a user object from the database

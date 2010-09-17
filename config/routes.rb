@@ -31,14 +31,17 @@ ActionController::Routing::Routes.draw do |map|
   map.signup 'signup',     :controller => 'users',     :action => 'new'
   map.activate 'activate/:activation_code', :controller => 'users', :action => 'activate', :activation_code => nil
   map.forgotpassword 'forgotpassword', :controller => 'users', :action => 'forgot_password'
-  map.resetpassword 'resetpassword', :controller => 'users', :action => 'reset_password'  
+  map.resetpassword 'resetpassword', :controller => 'users', :action => 'reset_password'
+  map.changepassword 'changepassword', :controller => 'users', :action => 'change_password'
   map.vcards 'contacts/vcards/:name.vcf', :controller => 'users', :action => 'vcards'
 
   map.resources :users, :as => "contacts",
-    :collection => {:new_bulk => :get, :create_bulk => :post},
-    :member => {:activation_update => :put}
+                        :collection => {:new_bulk => :get, :create_bulk => :post},
+                        :member => {:activation_update => :put} do |user|
+    user.activation_email 'send_activation_email', :controller => 'users', :action => 'resend_activation'
+  end
   
-  map.resources :tags
+  map.resources :tags, :collection => {:create_bulk => :post}
   
   map.resource :session
   map.resources :roles

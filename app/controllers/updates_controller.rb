@@ -1,10 +1,3 @@
-# Controller for operations on users in the database.
-#
-# Author::      Eli Fox-Epstein, efoxepstein@wesleyan.edu
-# Author::      Dimitar Gochev, dimitar.gochev@trincoll.edu
-# Copyright::   Humanitarian FOSS Project (http://www.hfoss.org), Copyright (C) 2009.
-# License::     http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License (LGPL)
-
 class UpdatesController < AuthorizedController
   def new
     return with_rejection unless @current_user.can? :create => Update
@@ -34,11 +27,15 @@ class UpdatesController < AuthorizedController
     if new_updates.size > 0
       user_groups_updates = User.find(params[:user_id]).groups.inject(Set.new){|set, cur| set.merge cur.update_ids}
       user_diff = (user_groups_updates & new_updates.map(&:id)).size
-      render :update do |page|  
-        page.replace_html 'new-updates', "<span>There #{new_updates.size == 1 ? 'is' : 'are'}
-         #{humanize_number new_updates.size} new update#{'s' if new_updates.size != 1},
-         with #{user_diff} in your groups.
-          #{link_to 'Reload the page', incident_updates_path(incident)} to see them.</span>"
+      render :update do |page|
+        size = new_updates.size
+
+        updates = "There #{size == 1 ? 'is' : 'are'} #{humanize_number size, {},'a'} new update#{'s' if new_updates.size != 1}."
+        yourgroups = user_diff > 0 ? "(#{user_diff} in your groups.)" : ''
+        reload = "#{link_to 'Refresh', incident_updates_path(incident)} to see #{size == 1 ? 'it' : 'them'}."
+        shadow = '<div id="shadow"></div>'
+        hider = '<a id="hider" href="#">x</a>'
+        page.replace_html 'new-updates-inner', "<div id=\"new-updates\">#{updates} #{yourgroups} #{reload} #{hider}</div>#{shadow}"
       end
     else
       render :text => ''
@@ -86,7 +83,8 @@ class UpdatesController < AuthorizedController
     }    
     
     @searched = !search_clauses.blank?
-    @updates = @incident.updates.search(search_clauses).paginate(pagination_options)
+    @all_updates = @incident.updates.search(search_clauses).uniq.sort_by {|u| -(u.created_at.to_i)}
+    @updates = @all_updates.paginate(pagination_options)
 
     @comment = Comment.new
     @latest_update_id = Update.last.id

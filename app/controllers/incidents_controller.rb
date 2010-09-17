@@ -1,10 +1,3 @@
-# Controller for operations on incidents in the database.  
-#
-# Author::      Eli Fox-Epstein, efoxepstein@wesleyan.edu
-# Author::      Dimitar Gochev, dimitar.gochev@trincoll.edu
-# Copyright::   Humanitarian FOSS Project (http://www.hfoss.org), Copyright (C) 2009.
-# License::     http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License (LGPL)
-
 class IncidentsController < AuthorizedController
   def new    
     @incident = Incident.new
@@ -44,7 +37,7 @@ class IncidentsController < AuthorizedController
     end
 
     if @incident.save
-      flash[:notice] = "Incident created successfully"
+      flash[:notice] = t('notice.incident.created')
       redirect_to @incident
     else
       render :action => 'new'
@@ -58,7 +51,7 @@ class IncidentsController < AuthorizedController
     @incident = @instance.incidents.find(params[:id])
     return with_rejection unless @current_user.can? :update => @incident
     if @incident.update_attributes(params[:incident])
-      flash[:notice] = "Incident updated successfully"
+      flash[:notice] = t('notice.incident.updated')
       redirect_to @incident
     else
       render :action => 'new'

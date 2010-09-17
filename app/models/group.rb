@@ -1,14 +1,8 @@
-# Represents a group of a group type within an instance
-#
-# Author::      Eli Fox-Epstein, efoxepstein@wesleyan.edu
-# Author::      Dimitar Gochev, dimitar.gochev@trincoll.edu
-# Copyright::   Humanitarian FOSS Project (http://www.hfoss.org), Copyright (C) 2009.
-# License::     http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License (LGPL)
 class Group < ActiveRecord::Base
   include Authority
   acts_as_archive
     
-  belongs_to :group_type
+  belongs_to :group_type, :counter_cache => true
   has_many :memberships, :dependent => :destroy, :uniq => true
   has_many :users, :through => :memberships
   has_many :chairs, :class_name => 'User',

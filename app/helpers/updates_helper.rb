@@ -15,7 +15,31 @@ module UpdatesHelper
     end
   end
   
-  # trims at the last word ending at or before 'len'
+  # format's an update's text for display on updates/index
+  def abbreviated_text(update)
+    text = simple_link_format(update.text)
+    if update.text.length <= 256
+      text
+    else 
+      paragraphs = text.split(/<p>|<\/p>/).collect {|p| p.strip}.select {|p| p.length > 0}
+      len = 0
+      total_len = 0
+      to_display = paragraphs.select do |p|
+        total_len += p.length
+        len += p.length if len < 256
+        len < 256 || (total_len - p.length) < 256
+      end
+      
+      if len > 256 # truncate
+        to_display[-1] = truncate_at(to_display[-1], 256 - (len - to_display[-1].length))
+      end
+      
+      joined = to_display.join("</p>\n<p>")
+      "<p>#{joined}</p>"
+    end
+  end
+
+  # trims text down to about 256 characters for display
   def truncate_at(str,len)
     truncated = str[0..len+1]
     if truncated[-1] =~ /\s/
@@ -26,5 +50,17 @@ module UpdatesHelper
       truncated = words.join(' ')
     end
     truncated
+  end
+
+  def incident_admin_buttons(incident)
+    buttons = []
+    if @current_user.can? :update => incident
+      buttons << pretty_button(:edit_incident, edit_incident_path(incident), 'Edit Incident')
+      buttons << pretty_button(:close_incident, incident_close_path(incident), incident.closed_at ? 'Reopen Incident' : 'Close Incident')
+    end
+    if @current_user.can? :destroy => incident
+      buttons << pretty_delete_button(incident, :check => true)
+    end
+    "<ul>\n<li>#{buttons.join("</li>\n<li>")}</li>\n</ul>"
   end
 end

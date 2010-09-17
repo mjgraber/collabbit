@@ -18,7 +18,7 @@ namespace :db do
 
   desc "Turn development database into fixtures"
   task :fixturize => :environment do
-    sql  = "SELECT * FROM %s"
+    sql = "SELECT * FROM %s"
     skip_tables = ["schema_info", "schema_migrations"]
     ActiveRecord::Base.establish_connection
     (ActiveRecord::Base.connection.tables - skip_tables).each do |table_name|
@@ -71,5 +71,26 @@ namespace :i18n do
     end
     translations = flatten(YAML.load_file("#{RAILS_ROOT}/config/locales/en.yml")['en'])
     puts (strings - translations).to_a.join("\n")
+  end
+end
+
+task :update_times => :environment do
+  ActiveRecord::Base.record_timestamps = false
+
+  ActiveRecord::Base.send(:subclasses).each do |k|
+    times = k.columns.inject([]) do |memo, col|
+      memo << col.name.to_s if [Time, Date, DateTime].include? col.klass
+      memo
+    end
+
+    puts "Updating #{k}"
+    times.each {|t| puts "\t#{t}" }
+    puts
+
+    k.all.each do |obj|
+      times.each do |time_field|
+        obj.update_attribute(time_field, obj.send(time_field).try(:-, (9.minutes + 20.seconds)))
+      end
+    end
   end
 end

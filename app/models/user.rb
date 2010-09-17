@@ -1,10 +1,3 @@
-# Provides a model for instance-specific users.
-#
-# Author::      Eli Fox-Epstein, efoxepstein@wesleyan.edu
-# Author::      Dimitar Gochev, dimitar.gochev@trincoll.edu
-# Copyright::   Humanitarian FOSS Project (http://www.hfoss.org), Copyright (C) 2009.
-# License::     http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License (LGPL)
-
 class User < ActiveRecord::Base
   include Authority, Passworded
 
@@ -22,12 +15,16 @@ class User < ActiveRecord::Base
   has_many :memberships, :dependent => :destroy, :uniq => true
   has_many :comments, :dependent => :destroy
 
+  before_validation_on_create :default_alert_settings
+
   validates_presence_of     :first_name
   validates_presence_of     :last_name
   validates_presence_of     :email
   validates_length_of       :email, :within => 6..100
   validates_uniqueness_of   :email, :scope => :instance_id
   validates_format_of       :email, :with => /^([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})$/i
+  validates_inclusion_of    :text_alert, :in => [true,false]
+  validates_inclusion_of    :email_alert,:in => [true,false]
 
   attr_accessor :password_confirmation, :password
   
@@ -35,7 +32,9 @@ class User < ActiveRecord::Base
   attr_accessible :first_name,    :last_name,       :email,
                   :desk_phone,    :cell_phone,      :preferred_is_cell,
                   :wants_alerts,  :desk_phone_ext,  :password,
-                  :password_confirmation, :carrier, :carrier_id, :feeds_attributes
+                  :password_confirmation,           :carrier,
+                  :carrier_id,    :feeds_attributes,:state,
+                  :text_alert,    :email_alert
   
   def can?(hsh)
     return false unless hsh.is_a?(Hash) && role != nil
@@ -58,7 +57,7 @@ class User < ActiveRecord::Base
       if obj.empty?
         true
       else
-        permission_to? action, obj.first
+        obj.collect {|o| permission_to? action, o}.inject {|l,r| l && r}
       end
     else
       klass = obj.class == Class ? obj : obj.class
@@ -127,7 +126,7 @@ class User < ActiveRecord::Base
   # Returns the desk phone with its extension
   def desk_phone_with_ext
     if desk_phone_ext
-      desk_phone.to_s + " x " + desk_phone_ext
+      desk_phone.to_s + " x" + desk_phone_ext
     else
       desk_phone
     end
@@ -141,6 +140,20 @@ class User < ActiveRecord::Base
   end
   def preferred_is_cell?
     preferred_is_cell
+  end
+  
+  # check if a user receives text/email alerts
+  def text_alert?
+    text_alert
+  end
+  def email_alert?
+    email_alert
+  end
+  def text_alerts?
+    text_alert
+  end
+  def email_alerts?
+    email_alert
   end
   
   # Gets the user's permissions
@@ -244,4 +257,11 @@ class User < ActiveRecord::Base
     save
     UserObserver.enable!
   end
+
+  private
+    def default_alert_settings
+      self.email_alert ||= true
+      self.text_alert  ||= false
+      self
+    end
 end

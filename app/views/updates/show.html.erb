@@ -1,13 +1,4 @@
-<%
-# View which displays a single update's information.  
-#
-# Author::      Eli Fox-Epstein, efoxepstein@wesleyan.edu
-# Author::      Dimitar Gochev, dimitar.gochev@trincoll.edu
-# Copyright::   Humanitarian FOSS Project (http://www.hfoss.org), Copyright (C) 2009.
-# License::     http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License (LGPL)
-%>
-
-<% content_for :title, title(@update.title, 'Update', @incident.name, 'Incidents', @instance.short_name)%>
+<% content_for :title, title(@update.title, 'Update', @incident.name, 'Incidents') %>
 
 <% content_for :breadcrumbs, 
 	breadcrumbs(['Incidents',incidents_path],
@@ -18,34 +9,34 @@
 	<%= pretty_button(:edit_update, edit_incident_update_path(@incident, @update), 'Edit Update') if can?(:update => @update) %>
 <% end %>
 <% content_for :subheader_text,
-	subheader_text('by '+link_to_issuer(@update)+' on '+time_mdy(@update.created_at)) %>
+	subheader_text("by #{link_to_issuer(@update)} on #{time_mdy(@update.created_at)}") %>
 
 <% content_for :body do %>
   <div id="update">
     <h3>Text:</h3>
-    <p><%=simple_link_format @update.text %></p>
+	<%=simple_link_format @update.text %>
     <div class="comments">
       <h3>Comments:</h3>
       <% @update.comments.each do |c| %>
 		<div class="comment">
 			<span class="comment-author"><%=link_to c.user.full_name, c.user %></span>
 			<span class="comment-body"><%=simple_link_format c.body%></span>
-			<% if can? :destroy => c %>
+			<% if (@current_user.id == c.user.id) || (can? :destroy => c) %>
 			    <span class="comment-destroy">
 			        [<%=link_to 'X', [@incident, @update, c], :method => :delete, :confirm => 'Really delete?' %>]
 			    </span>
 			<% end %>
-			<span class="comment-date">posted <%=time_ago_in_words c.created_at%> ago</span>
+			<span class="comment-date">posted <%=time_mdy c.created_at%></span>
 		</div>
       <% end %>
       
-        <% form_for [@update.incident, @update, Comment.new], :id => "#{@update.id}-new-comment" do |f| %>
+	  <% form_for [@update.incident, @update, Comment.new], :html => {:id => "#{@update.id}-new-comment", :class => "new-comment"} do |f| %>
             <%= f.text_field :body, :class => "comment-textfield" %>
             <div class="comment-submit-wrapper">
                 <%= f.submit 'Add Comment', :class => "comment-submit" %>
             </div>
             <div class="clear"></div>
-        <% end %>
+		<% end %>
     </div>
   </div>
   <div id="extra">
@@ -57,7 +48,9 @@
           <ul>
             <% @update.attached_images.each do |f| %>
               <% w, h = FastImage.size(f.attach.path) %>
-              <li><%=link_to(image_tag(f.attach.url, :size => scale_dimensions(w, h, 150).join('x')), f.attach.url)%></li>
+              <% unless w.blank? || h.blank? %>
+                <li><%=link_to(image_tag(f.attach.url, :size => scale_dimensions(w, h, 150).join('x')), f.attach.url)%></li>
+              <% end %>
             <% end %>
           </ul>
         <% end %>
@@ -89,9 +82,9 @@
       <div id="tags">
         <h3>Tags:</h3>
         <ul>
-        <% @update.tags.find(:all, :order => 'name').each do |t| %>
-          <li class="tag"><%=easy_link_to(t.name, t)%></li>
-        <% end %>
+			<% @update.tags.find(:all, :order => 'name').each do |t| %>
+				<li class="tag"><%= tag_link_helper t, @update.incident %></li>	
+			<% end %>
         </ul>
       </div>
     <% end %>

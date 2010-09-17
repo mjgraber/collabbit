@@ -3,6 +3,7 @@
 	color: #999
 }
 
+/* users/index */
 #index {
 	list-style-type: none;
 	margin: -5px auto 5px;
@@ -29,20 +30,21 @@
 			font-size: 13px;
 		}
 			#index li a {
-				color: white;
+				color: #444;
 				font-weight: bold;
-				padding: 0 2px;
+				padding: 0 1px;
 				height: 18px;
 				width: 14px;
 				display: inline-block;
 				line-height: 18px;
-				background: #777;
+				background: #ddd;
+				border: 1px solid #aaa;
 				font-size: 15px;
 				text-decoration: none;
 				margin: 0 -1px;
 			}
 				#index li a:hover {
-					background: #444;
+					background: white;
 				}
 
 #contacts {
@@ -51,32 +53,32 @@
 	padding: 0;
 }
 	#contacts > li {
-		width: 340px;
+		width: 360px;
 		height: 132px;
 		float:left;
-		margin: 8px 8px 8px 29px;
-		padding: 0 5px;
-		border-right: 1px solid #666;
-		border-bottom: 1px solid #666;
-		border-left: 1px solid #ccc;
-		border-top: 1px solid #ccc;
+		margin: 8px -10px 8px 29px;
+		padding: 2px 10px;
+		border: 1px solid #ccc;
+		border-color: #ccc #999 #999 #ccc;
+		position: relative;
 	}
 		#contacts > li:hover {
 			border-color: #000;
 		}
-  #contacts > li.separator {
-    width: auto;
-    font-weight: bold;
-    border: solid;
-    border-color: #ccc;
-    border-width: 1px;
-    color: #666;
-    clear:left;
-    height: auto;
-    background: #eee;
-    width: 11px;
-    margin: 8px -21px 8px 0;
-  }
+	#contacts > li.separator {
+		width: auto;
+		font-weight: bold;
+		border: solid;
+		border-color: #ccc;
+		border-width: 1px;
+		color: #666;
+		clear:left;
+		height: auto;
+		background: #eee;
+		width: 11px;
+		padding: 0 5px;
+		margin: 8px -21px 8px 0;
+	}
 
 		#contacts li ul.groups {
 			list-style-type: none;
@@ -97,40 +99,68 @@
 		#contacts a {
 			color: #000;
 			font-size: 14px;
+			text-decoration: none;
 		}
+			#contacts a:hover {
+				text-decoration: underline;
+			}
 		#contacts .more a {
 			text-decoration: none;
 		}
 
 		#contacts .name {
-			border-bottom: 1px solid #ccc;
 			font-weight: bold;
+			padding: 3px 0 1px;
+			margin-bottom: 5px;
+			overflow: auto;
+			border-bottom: 2px dotted #ddd;
 		}
-			#contacts .name .vcard a {
+			#contacts .name a {
+				color: #275FE4;
+				float: left;
+			}
+			#contacts .name a.vcard {
 				float: right;
 				font-size: 12px;
 				padding: 2px;
 				color: #666;
+				display: inline;
 			}
-				#contacts .name .vcard a:hover {
-					background: #000;
-					color: #fff;
-				}
 
 		#contacts .email a {
 			color: #00a;
-			text-decoration: none;
 		}
 		.person-info {
 			clear:both;
 		}
-			#contacts a.approve {
-				color: red;
-				font-weight: bold;
-				display: block;
-				padding: 5px 0;
-				text-align: right;
+			.user-admin {
+				background: #ddd;
+				position: absolute;
+				z-index: 1;
+				bottom: 0; left: 0; right: 0;
+				height: 31px;
 			}
+				#contacts .user-admin a.resend {
+					font-size: 12px;
+					position: absolute;
+					display: block;
+					bottom: 5px; left: 10px;
+					line-height: 16px;
+				}
+				#contacts .user-admin a.approve {
+					font-weight: bold;
+					position: absolute;
+					display: block;
+					bottom: 3px; right: 10px;
+					font-size: 12px;
+					padding: 3px 10px;
+					margin: 0;
+					line-height: 16px;
+				}
+					#contacts .user-admin a.approve:hover {
+						text-decoration: none;
+						border-color: black;
+					}
 		.phone, .email {display: block}
 		.groups {display:inline}
 		.contact-label {
@@ -138,44 +168,217 @@
 			font-size: 12px;
 		}
 
-/* SHOW */
-#contact-info-list {
-	list-style-type: none;
+/* users/show */
+dl#contact {
 	margin: 0;
-	padding: 0;
 }
-	#contact-groups {
-		display: inline;
-		padding: 0;
+	#contact a {
+		color: #275FE4;
 	}
-		#contact-groups li {
-			display: inline;
-			padding-left: 4px;
+		#contact a:hover {
+			text-decoration: none;
+		}
+	#contact dt {
+		font-weight: bold;
+	}
+	#contact dd {
+		margin: 4px 0 12px 20px;
+	}
+		#groups-list {
+			padding: 0;
+			margin: 0 0 4px;
+			color: #aaa;
+		}
+			#groups-list .delete-link {
+				font-size: 12px;
+				vertical-align: middle;
+				text-decoration: none;
+			}
+				#groups-list .delete-link:hover {
+					color: black;
+				}
+		dl#contact .tiny {
+			color: black;
+			font-size: 16px;
 		}
 
-/* EDIT */
-#notifications {
-    text-align: left;
+/* users/_form_simple and users/_form (new/edit) */
+.user-form {
+	padding: 0;
+	margin: 0;
 }
-    #notifications th {
-        font-weight: bold;
-        font-size: 14px;
-        font-variant: small-caps;
-    }
-        .incident-title {
-            width: 150px;
-            font-size: 14px;
-        }
-        .feed-email-setting {
-            
-        }
-        .incident-title, .feed-email-setting, .feed-text-setting {
-            border-bottom: 1px solid #ddd;
-            padding: 2px 25px 2px 0;
-            color: #444;
-        }
+	.user-form dl {
+		margin: 0;
+	}
+		.user-form legend {
+			font-size: 12px;
+			font-weight: bold;
+		}
+			.user-form legend em {
+				font-weight: normal;
+				font-style: italic;
+			}
+		.user-form dt {
+			font-weight: bold;
+			color: #666;
+			font-size: 14px;
+			margin-top: 10px;
+		}
+			.user-form dt em {
+				font-weight: normal;
+				font-style: italic;
+				font-size: 12px;
+				color: black;
+				display: block;
+				margin-bottom: 2px;
+			}
+		.user-form dd {
+			margin: 0;
+		}
+			.user-form dd input {
+				border: 1px solid #aaa;
+				padding: 4px 2px;
+			}
+				.user-form dd input:focus {
+					border-color: black;
+				}
+		/* style the name/email block */
+		#required-fields {
+			background: #eee;
+			border: 1px solid #aaa;
+			padding: 10px 20px 20px;
+			width: 312px;
+			margin: 0 0 20px;
+		}
+			.user-form dt.firstname, .user-form dd.firstname {
+				width: 122px;
+				float: left;
+				margin-right: 12px;
+				margin-top: 0;
+			}
+			.user-form dd.firstname {
+				clear: both;
+			}
+				.user-form dd.firstname input {
+					width: 114px;
+				}
+				.user-form dd.lastname input {
+					width: 170px;
+				}
+			.user-form dt.lastname {
+				margin-top: 0;
+			}
+			.user-form dt.email {
+				clear: both;
+				margin-top: 10px;
+			}
+				.user-form dd.email input {
+					width: 304px;
+				}
+		/* phone numbers */
+		#optional-fields {
+			width: 314px;
+			padding: 0 20px;
+			border-width: 1px 0 0;
+			margin: 0;
+		}
+			#optional-fields dl {
+				margin: 0 -20px;
+			}
+				.user-form input.phone {
+					width: 94px;
+					display: inline;
+				}
+				.user-form input.extension {
+					width: 36px;
+				}
+		/* alerts */
+		#alerts-overall {
+			overflow: auto;
+		}
+			#user_text_alert, #user_email_alert {
+				display: block;
+				float: left;
+				clear: both;
+			}
+			#alerts-overall label {
+				float: left;
+			}
+		#alerts-toggle {
+			color: #275FE4;
+		}
+		#alerts-individual {
+			margin-top: 12px;
+		}
+			#alerts-individual th {
+				font-weight: bold;
+				font-size: 14px;
+				font-variant: small-caps;
+			}
+				.incident-title {
+					width: 150px;
+					font-size: 14px;
+					padding: 2px 25px 2px 0;
+				}
+				.feed-email-setting, .feed-text-setting {
+					width: 0;
+					padding: 2px 12px;
+				}
+				.incident-title, .feed-email-setting, .feed-text-setting {
+					border-bottom: 1px solid #ddd;
+					color: #444;
+				}
+		.user-form div#submit-update {
+			margin-top: 12px;
+		}
+		.form-instructions {
+			font-style: italic;
+			font-size: 12px;
+			clear: both;
+			margin: 12px 0 6px;
+		}
+		.user-form div#submit-create {
+			clear: both;
+			width: 354px;
+		}
+			.user-form #submit-create div {
+				border: 2px solid black;
+				-moz-border-radius: 4px;
+				-webkit-border-radius: 4px;
+				border-radius: 4px;
+				-moz-box-shadow: 2px 2px 3px #444;
+				-webkit-box-shadow: 2px 2px 3px #444;
+				box-shadow: 2px 2px 3px #444;
+				margin: 0 auto;
+				width: 180px;
+				text-align: center;
+			}
+				.user-form #submit-create input {
+					border: 1px solid #275FE4;
+					border-color: #819EE5 #2952B2 #2952B2 #819EE5;
+					-moz-border-radius: 4px;
+					-webkit-border-radius: 4px;
+					border-radius: 4px;
+					background: #275FE4;
+					color: white;
+					font-weight: bold;
+					font-size: 16px;
+					text-shadow: 1px 1px #2F3D5E;
+					padding: 6px 0;
+					width: 182px;
+					margin: -1px;
+				}
+					.user-form #submit-create input:hover {
+						background: #2C59C5;
+						border-color: #5A81E2 #2952B2 #2952B2 #5A81E2;
+					}
+					.user-form #submit-create input:active {
+						border-color: #2952B2 #5A81E2 #5A81E2 #2952B2;
+						padding: 7px 16px 5px;
+					}
 
-/* NEW_BULK */
+
+/* users/new_bulk */
 div.bulk_user {
 	overflow: auto;
 	width: 600px;
@@ -196,5 +399,5 @@ div.bulk_user {
 			display: block;
 			width: 188px;
 			border: 1px solid #aaa;
-			borde
 		}
+
