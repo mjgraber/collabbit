@@ -1,8 +1,8 @@
-<% content_for :title, title('Edit incident', @incident.name, 'Incidents')%>
+<% content_for :title, title('Edit incident', h(@incident.name), 'Incidents')%>
 
 <% content_for :breadcrumbs, 
 	breadcrumbs(['Incidents',incidents_path],
-				[@incident.name,incident_path(@incident)]) %>
+				[h(@incident.name),incident_path(@incident)]) %>
 <% content_for :subheader_title, 'Edit Incident' %>
 
 <% content_for :body do %>

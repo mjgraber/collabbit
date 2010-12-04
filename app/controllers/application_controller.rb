@@ -1,6 +1,9 @@
 class ApplicationController < ActionController::Base
   require 'digest/sha1'
   helper :all # include all helpers, all the time
+
+  #Filter to catch exceptions and display nice page
+  around_filter :catch_exceptions
   
   filter_parameter_logging 'password'
 
@@ -13,10 +16,10 @@ class ApplicationController < ActionController::Base
     render "shared/404", :layout => 'home'
   end
   
-  # rescue_from ActiveRecord::RecordNotFound do
-  #     flash[:error] = "We're sorry, something you just requested was misplaced."
-  #     redirect_to @instance
-  #   end
+   rescue_from ActiveRecord::RecordNotFound do
+       flash.now[:error] = "We're sorry, something you just requested was misplaced."
+       redirect_to @instance
+     end
   
   layout :check_if_promo_layout
   
@@ -71,5 +74,16 @@ class ApplicationController < ActionController::Base
       flash[:notice] = t('notice.user.pending_users', :url => users_path(:states_filter => 'pending'))
     end
   end
+  
+  #function to catch all general exceptions and redirect to 404 page
+  private
+  def catch_exceptions
+    yield
+   rescue => exception
+    logger.debug "Caught Exception: #{exception}"
+    flash.now[:error] = "We're sorry, either that page doesn't exist or that url is mistyped."
+    render "shared/404", :layout => 'home'
+  end
+
   
 end

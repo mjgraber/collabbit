@@ -6,9 +6,9 @@
 	<h1>List of instances</h1>
 	<ul>
 	<% @instances.each do |i| %>
-		<li><%= i.long_name %><ul>
+		<li><%= h(i.long_name) %><ul>
 			<% i.incidents.each do |incid| %>
-				<li><%= link_to incid.name, incid %></li>
+				<li><%= link_to h(incid.name), incid %></li>
 			<% end %>
 		</ul></li>
 	<% end %>

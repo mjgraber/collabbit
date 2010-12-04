@@ -12,7 +12,7 @@
 	<ul id="groups-list">
 	<% @current_user.groups.find(:all, :order => 'name').each do |g| %>
 		<li>
-			<%= link_to g.name, group_type_group_path(g.group_type, g) %>
+			<%= link_to h(g.name), group_type_group_path(g.group_type, g) %>
 			&ndash; <%= g.users.size %> members
 			<% unless g.chairs.empty? %>
 				Chairs: 
@@ -28,7 +28,7 @@
 	<ul id="group-type-list">
 	<% @group_types.each do |gt| %>
 		<li class="group-type">
-			<h3><%= link_to gt.name, gt, :class => :title %></h3>
+			<h3><%= link_to h(gt.name), gt, :class => :title %></h3>
 			&ndash; <%= pluralize(gt.groups.length, "group")%>
 			<% if gt.destroyable_by?(@current_user) %> 
 			<span class="delete-grouptype">[<%=link_to 'X', gt, :method => :delete, :confirm => 'Really delete group type?'%>]</span>
@@ -36,7 +36,7 @@
 			<ul id="groups-list">
 			<% gt.groups.find(:all, :order => 'name').each do |g| %>
 				<li>
-					<%= link_to g.name, group_type_group_url(g.group_type, g) %>
+					<%= link_to g(g.name), group_type_group_url(g.group_type, g) %>
 					&ndash; <%= pluralize(g.users.size, "member") %>
 					<% unless g.chairs.empty? %>
 						Chairs: 

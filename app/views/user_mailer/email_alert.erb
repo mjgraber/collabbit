@@ -1,11 +1,11 @@
-Collabbit <%=@user.instance.long_name%>
+Collabbit <%=h(@user.instance.long_name)%>
 
-<%=h @update.incident.name%> - <%=@action%> update <%="'#{@update.title}'"%>
-Posted by <%=@update.user.full_name%> <%="(#{@update.issuing_group.name})" if @update.issuing_type == :group%> at <%=time_mdy(@update.updated_at)%>
+<%=h(@update.incident.name)%> - <%=@action%> update <%="'#{h(@update.title)}'"%>
+Posted by <%=h(@update.user.full_name)%> <%="(#{@update.issuing_group.name})" if @update.issuing_type == :group%> at <%=time_mdy(@update.updated_at)%>
 
-<%=h @update.text%>
+<%=h(@update.text)%>
 
-Relevant groups: <%= (@update.relevant_groups.map{|g|g.name}).join(', ')%>
+Relevant groups: <%= (@update.relevant_groups.map{|g|j(g.name)}).join(', ')%>
 Tags: <%= (@update.tags.map{|t|t.name}).join(', ')%>
 
 View this update online: http://<%= @user.instance.short_name %>.collabbit.org<%=incident_update_path(@update.incident, @update)%>

@@ -86,6 +86,9 @@ class UsersController < AuthorizedController
   def create
     return with_rejection unless !logged_in? || @current_user.can?(:create => User)
     params[:user][:email].strip!
+    params[:user][:first_name] = params[:user][:first_name].sanitize
+    params[:user][:last_name] = params[:user][:last_name].sanitize
+    params[:user][:email] = params[:user][:email].sanitize
     @user = create_user(params[:user])
     @user.state = 'approved' if logged_in? || @user.whitelisted?
 
@@ -148,6 +151,9 @@ class UsersController < AuthorizedController
   # The data to be saved is provided in the :user hash,
   # which is populated by the form on the 'edit' page.
   def update
+    params[:user][:first_name] = params[:user][:first_name].sanitize
+    params[:user][:last_name] = params[:user][:last_name].sanitize
+    params[:user][:email] = params[:user][:email].sanitize
     @user = @instance.users.find(params[:id])
     return with_rejection unless @current_user.can? :update => @user
 

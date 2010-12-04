@@ -22,11 +22,11 @@
 	<ul id="groups-list">
 	<% @group_type.groups.each do |g| %>
 		<li>
-			<%= link_to g.name, group_type_group_url(g.group_type, g) %>
+			<%= link_to h(g.name), group_type_group_url(g.group_type, g) %>
 			&ndash; <%= g.users.size %> members.
 			<% unless g.chairs.empty? %>
 				Chairs: 
-				<%= (g.chairs.map{|c|c.full_name}).join(', ') %>
+				<%= (g.chairs.map{|c|h(c.full_name)}).join(', ') %>
 			<% end %>
 			<% unless g.users.include? @current_user %>
 			&ndash; <%= link_to 'Join', memberships_path(:group_id => g.id, :user_id => @current_user), :method => :post -%>

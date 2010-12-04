@@ -1,11 +1,11 @@
-<% content_for :title, title('Edit user', @user.full_name, 'Contacts')%>
+<% content_for :title, title('Edit user', h(@user.full_name), 'Contacts')%>
 <% content_for :javascripts, javascript_include_tag('jquery','users')%>
 
 <% if @current_user == @user # account page %>
 	<% content_for :subheader_title, "Account Settings" %>
 <% else # edit user page (for admins) %>
 	<% content_for :breadcrumbs,
-		breadcrumbs(['Contacts',users_url],	[@user.full_name,user_url(@user)]) %>
+		breadcrumbs(['Contacts',users_url],	[h(@user.full_name),user_url(@user)]) %>
 	<% content_for :subheader_title, "Edit user" %>
 <% end %>
 

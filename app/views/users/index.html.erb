@@ -18,7 +18,7 @@
 		<%= link_to 'Bulk add contacts', new_bulk_users_path, :class => 'button-link' %>
 	<% end %>
 	<%= link_to 'Download these contacts', vcards_path('contacts', :users =>(@users.map {|u|u.id}).join(',')), :class => 'button-link' %>
-    <%= mail_to (@users.map {|u| u.email}).join(';'), 'Email these contacts', :class => 'button-link', :target => '_blank' %>
+    <%= mail_to (@users.map {|u| h(u.email)}).join(';'), 'Email these contacts', :class => 'button-link', :target => '_blank' %>
 <% end %>
 
 <% content_for :filters do %>
@@ -29,7 +29,7 @@
 	%>
 
 	<% form_tag users_path, :method => :get do %>
-		<%= text_field_tag :search, (params[:search] || 'Search Keywords'), :size => 20, :class=>(!params[:search] || params[:search] == '' ? 'blank':'') %>
+		<%= h(text_field_tag :search, (params[:search] || 'Search Keywords'), :size => 20, :class=>(!params[:search] || params[:search] == '' ? 'blank':'')) %>
 		<select name="groups_filter">
 			<option value="" <%= 'selected="selected"' if @groups_filter == "" %>>All Groups</option>
 			<option value="mine" <%= 'selected="selected"' if @groups_filter == "mine" %> <%= 'style="display: none"' if @current_user.groups.size == 0 %>>My Groups</option>
@@ -76,28 +76,28 @@
 			if u.last_name[0,1].upcase != last
 				last = u.last_name[0,1].upcase
 			%>
-				<li class="separator" id="<%=last%>"><%=last%></li>
+				<li class="separator" id="<%=last%>"><%=h(last)%></li>
 			<% end %>
 		<li>
 			<div class="name">
-				<%= link_to u.last_first, u %>
+				<%= link_to h(u.last_first), u %>
 				<%= link_to "Download Contact", user_path(u, :format => :vcf), :class => 'vcard' %>
 			</div>
 			<div class="person-info">
 				<% if u.cell_phone? %>
 					<span class="phone">
-						<span class="contact-label">cell phone: </span> <%=phone u.cell_phone -%> <%= preferred if u.preferred_is_cell? and u.desk_phone? -%> </span>
+						<span class="contact-label">cell phone: </span> <%=phone h(u.cell_phone) -%> <%= preferred if u.preferred_is_cell? and u.desk_phone? -%> </span>
 				<% end %>
 				<% if u.desk_phone? %>
 					<span class="phone">
 						<span class="contact-label">desk phone:</span>
-						<%=phone u.desk_phone_with_ext %> <%= preferred if !u.preferred_is_cell and u.cell_phone? %>
+						<%=phone h(u.desk_phone_with_ext) %> <%= preferred if !u.preferred_is_cell and u.cell_phone? %>
 					</span>
 				<% end %>
 				<% if u.email %>
 					<span class="email">
 						<span class="contact-label">email:</span>
-						<%=mail_to u.email, u.email, :target => '_blank' %>
+						<%=mail_to h(u.email), u.email, :target => '_blank' %>
 					</span>
 				<% end %>
 				<% if u.groups and u.groups.length > 0 %>
@@ -106,12 +106,12 @@
 						<ul class="groups">
 						<% if u.groups.length > 4 %>
 							<% u.groups[0,4].each do |g| %>
-							<li><%= link_to g.name, group_type_group_path(g.group_type, g) %></li>
+							<li><%= link_to h(g.name), group_type_group_path(g.group_type, g) %></li>
 							<% end %>
 							<li class="more"><%= link_to "["+(u.groups.length-4).to_s+"&nbsp;more]", u%></li>
 						<% else %>
 							<% u.groups.each do |g| %>
-							<li><%= link_to g.name, group_type_group_path(g.group_type, g) %></li>
+							<li><%= link_to h(g.name), group_type_group_path(g.group_type, g) %></li>
 							<% end %>
 						<% end %>
 						</ul>
@@ -124,7 +124,7 @@
 					</div>
 				<% elsif u.approved? && can?(:update => u) %>
 					<div class="user-admin">
-						<%= link_to('Re-send Activation Email', user_activation_email_url(u), :confirm => "Re-send an activation email to #{u.full_name}?", :class => :resend) %>
+						<%= link_to('Re-send Activation Email', user_activation_email_url(u), :confirm => "Re-send an activation email to #{h(u.full_name)}?", :class => :resend) %>
 					</div>				
 				<% end %>
 			</div>

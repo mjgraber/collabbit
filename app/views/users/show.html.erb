@@ -1,7 +1,7 @@
-<% content_for :title, title(@user.full_name, 'Contacts') %>
+<% content_for :title, title(h(@user.full_name), 'Contacts') %>
 
 <% content_for :breadcrumbs, breadcrumbs(['Contacts',users_path]) %>
-<% content_for :subheader_title, @user.full_name %>
+<% content_for :subheader_title, h(@user.full_name) %>
 <% content_for :buttons do %>
 	<%=link_to 'Download Contact (vCard)', formatted_user_path(@user, :vcf), :class => 'button-link' %>
 	<%= pretty_delete_button(@user, :check => true) if can? :destroy => @user %>
@@ -11,16 +11,16 @@
 <% content_for :body do %>
 	<dl id="contact">
 		<dt>Email:</dt>
-			<dd><%= mail_to @user.email, @user.email, :target => '_blank' %></dd>
+			<dd><%= mail_to h(@user.email), @user.email, :target => '_blank' %></dd>
 		
 		<% if @user.cell_phone %>
 			<dt>Cell Phone:</dt>
-				<dd><%= phone @user.cell_phone %> <%= preferred_cell(@user) %></dd>
+				<dd><%= phone h(@user.cell_phone) %> <%= preferred_cell(@user) %></dd>
 		<% end %>
 
 		<% if @user.desk_phone %>
 			<dt>Desk Phone:</dt>
-				<dd><%= phone @user.desk_phone %> <%= preferred_desk(@user) %></dd>
+				<dd><%= phone h(@user.desk_phone) %> <%= preferred_desk(@user) %></dd>
 		<% end %>
 
 		<dt>Groups:</dt>
@@ -29,7 +29,7 @@
 						<li>No groups</li>
 					<% else %>
 						<% @user.groups.sort_by {|g| g.name}.each do |g| %>
-							<li><%= link_to_if can?(:view => g), g.name, group_type_group_url(g.group_type, g)%>
+							<li><%= link_to_if can?(:view => g), h(g.name), group_type_group_url(g.group_type, g)%>
 								<% if g.chairs.include?(@user) %>
 									<span class="chair">[Chair]</span>
 								<% end %>

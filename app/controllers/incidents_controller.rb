@@ -27,6 +27,8 @@ class IncidentsController < AuthorizedController
   # Saves an incident object to the database with the parameters provided in 
   # the :incident hash, which is populated by the form on the 'new' page
   def create    
+    params[:incident][:name] = params[:incident][:name].sanitize
+    params[:incident][:description] = params[:incident][:description].sanitize
     @incident = @instance.incidents.build(params[:incident])
     return with_rejection unless @current_user.can? :create => Incident
         
@@ -48,6 +50,8 @@ class IncidentsController < AuthorizedController
   # The data to be saved is provided in the :incident hash, 
   # which is populated by the form on the 'edit' page
   def update
+    params[:incident][:name] = params[:incident][:name].sanitize
+    params[:incident][:description] = params[:incident][:description].sanitize
     @incident = @instance.incidents.find(params[:id])
     return with_rejection unless @current_user.can? :update => @incident
     if @incident.update_attributes(params[:incident])
@@ -82,4 +86,5 @@ class IncidentsController < AuthorizedController
     
     redirect_to @incident
   end
+  
 end

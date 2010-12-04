@@ -1,10 +1,10 @@
-<% content_for :title, title('Updates', @incident.name, 'Incidents') %>
+<% content_for :title, title('Updates', h(@incident.name), 'Incidents') %>
 <% content_for :javascripts, javascript_include_tag('jquery', 'jquery.multifile', 'updates', 'prototype')%>
 
 <% content_for :breadcrumbs, 
 	breadcrumbs(['Incidents',incidents_path]) %>
 <% content_for :subheader_title do %>
-	<%=link_to @incident.name, @incident %>
+	<%=link_to h(@incident.name), @incident %>
 	<span class="title-small">
 	<% if !@search && !@groups_filter && !@tags_filter %>
 		<% if @all_updates.size == @updates.size %>
@@ -32,7 +32,7 @@
 		</div>
 	<% end %>
 <% end %>
-<% content_for :subheader_text, subheader_text(@incident.description) if @incident.description %>
+<% content_for :subheader_text, subheader_text(h(@incident.description)) if @incident.description %>
 <% content_for :filters do %>
 	<%	groups = Set.new
 		tags = Set.new
@@ -45,7 +45,7 @@
 	%>
 		
 	<% form_tag incident_updates_path(@incident), :method => :get do %>
-		<%= text_field_tag :search, (params[:search] || 'Search Keywords'), :size => 20, :class=>(!params[:search] || params[:search] == '' ? 'blank':'') %>
+		<%= h(text_field_tag :search, (params[:search] || 'Search Keywords'), :size => 20, :class=>(!params[:search] || params[:search] == '' ? 'blank':'')) %>
 					
 		<select name="groups_filter" id="filters_groups">
 			<option value="" <%= 'selected="selected"' if @groups_filter == "" %>>All Groups</option>
@@ -142,7 +142,7 @@
 						<% i = u.relevant_groups.find(:all).count %>
 						<% u.relevant_groups.find(:all, :order => 'name').each do |g| %>
 							<% j= j + 1 %>
-							<li><%=link_to g.name, group_type_group_path(g.group_type, g) %></li>		
+							<li><%=link_to h(g.name), group_type_group_path(g.group_type, g) %></li>		
 						<% end %>	
 						</ul>
 						<div class="clear"></div>
@@ -166,13 +166,13 @@
 			</div>
 
 			<div class="update-main">
-				<%= link_to u.title, incident_update_path(@incident, u), :class => 'update-title' %>
+				<%= link_to h(u.title), incident_update_path(@incident, u), :class => 'update-title' %>
 				<div class="update-text">
 				<%  if u.text.length > 256 %>
-					<%= abbreviated_text(u) %>
+					<%= h(abbreviated_text(u)) %>
 					<%=link_to('&raquo;more', incident_update_path(@incident, u),:class => 'update-more') %>
 				<%  else %>
-					<%=simple_link_format u.text %>
+					<%=simple_link_format h(u.text) %>
 				<% end %>
 				</div>
 				<% unless u.attached_files.empty? %>
@@ -195,8 +195,8 @@
 				    <% end %>
 					<% u.comments.last(5).each do |c| %>
 					<div class="comment">
-						<span class="comment-author"><%=link_to c.user.full_name, c.user %></span>
-						<span class="comment-body"><%=simple_link_format c.body%></span>
+						<span class="comment-author"><%=link_to h(c.user.full_name), c.user %></span>
+						<span class="comment-body"><%=simple_link_format h(c.body)%></span>
 						<% if (c.user.id == @current_user.id) || (can? :destroy => c) %>
 						    <span class="comment-destroy"><%=link_to '[x]', [@incident, u, c], :method => :delete, :confirm => 'Really delete?' %></span>
 						<% end %>

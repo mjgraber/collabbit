@@ -10,20 +10,20 @@
 <% content_for :body do%>
     <% if @incidents.empty?%>		
         <h3 class="centered">There are no incidents yet.
-        Want to <%= link_to 'create one', new_incident_path %>?
+        Want to <%= link_to 'create one', new_incident_path %>?</h3>
     <% else %>
         <ul id="incidents-list">
         <% @incidents.each do |i| %>
             <% unless i.closed_at? %>
-            <li><%= link_to i.name, i, :class => :title %> 
-                <%=h i.description %>
+            <li><%= link_to h(i.name), i, :class => :title %> 
+                <%=h(i.description) %>
                 <span class="date">(<%=mdy i.created_at%>)</span>
             </li>
             <% else %>
             <li>
                 <span class="changed">closed</span>
-                <%= link_to i.name, i, :class => "title closed" %>
-                <%=h i.description %>
+                <%= link_to h(i.name), i, :class => "title closed" %>
+                <%=h(i.description) %>
                 <span class="date">(<%=mdy i.created_at%> to <%=mdy i.closed_at%>)</span>
             </li>
             <% end %>

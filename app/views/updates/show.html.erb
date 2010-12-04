@@ -1,9 +1,9 @@
-<% content_for :title, title(@update.title, 'Update', @incident.name, 'Incidents') %>
+<% content_for :title, title(@update.title, 'Update', h(@incident.name), 'Incidents') %>
 
 <% content_for :breadcrumbs, 
 	breadcrumbs(['Incidents',incidents_path],
-				[@incident.name,incident_path(@incident)]) %>
-<% content_for :subheader_title, @update.title %>
+				[h(@incident.name),incident_path(@incident)]) %>
+<% content_for :subheader_title, h(@update.title) %>
 <% content_for :buttons do %>
 	<%= pretty_button(:delete_update, incident_update_path(@incident, @update), 'Delete Update', :method => :delete, :confirm => "Really delete update?") if can?(:destroy => @update)%>
 	<%= pretty_button(:edit_update, edit_incident_update_path(@incident, @update), 'Edit Update') if can?(:update => @update) %>
@@ -19,8 +19,8 @@
       <h3>Comments:</h3>
       <% @update.comments.each do |c| %>
 		<div class="comment">
-			<span class="comment-author"><%=link_to c.user.full_name, c.user %></span>
-			<span class="comment-body"><%=simple_link_format c.body%></span>
+			<span class="comment-author"><%=link_to h(c.user.full_name), c.user %></span>
+			<span class="comment-body"><%=simple_link_format h(c.body)%></span>
 			<% if (@current_user.id == c.user.id) || (can? :destroy => c) %>
 			    <span class="comment-destroy">
 			        [<%=link_to 'X', [@incident, @update, c], :method => :delete, :confirm => 'Really delete?' %>]
@@ -71,7 +71,7 @@
         <h3>Groups:</h3>
         <ul>
         <% @update.relevant_groups.find(:all, :order => 'name').each do |g| %>
-          <li class="tag"><%=easy_link_to(g.name, g)%></li>
+          <li class="tag"><%=easy_link_to(h(g.name), g)%></li>
         <% end %>
         </ul>
       </div>

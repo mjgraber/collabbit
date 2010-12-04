@@ -94,7 +94,8 @@ class UpdatesController < AuthorizedController
   # the :update hash, which is populated by the form on the 'new' page
   def create
     return with_rejection unless @current_user.can? :create => Update
-
+    params[:update][:title] = params[:update][:title].sanitize
+    params[:update][:text] = params[:update][:text].sanitize
     @incident = @instance.incidents.find(params[:incident_id])
     @update = @incident.updates.build(params[:update])
     @update.user = @current_user
@@ -138,6 +139,8 @@ class UpdatesController < AuthorizedController
   # The data to be saved is provided in the :update hash,
   # which is populated by the form on the 'edit' page.
   def update
+    params[:update][:title] = params[:update][:title].sanitize
+    params[:update][:text] = params[:update][:text].sanitize
     @incident = @instance.incidents.find(params[:incident_id])
     @update = @incident.updates.find(params[:id])
     return with_rejection unless @current_user.can? :update => @update

@@ -8,7 +8,7 @@
 		<ul id="contacts">
 		<% @admins.each do |a| %>
 			<li>
-				<div class="name"><%=link_to a.email, admin_url(a) %></div>
+				<div class="name"><%=link_to h(a.email), admin_url(a) %></div>
 			</li>
 		<% end %>
 		</ul>
